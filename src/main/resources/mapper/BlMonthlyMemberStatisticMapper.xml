@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.powerlong.yy.toolkit.dao.BlMonthlyMemberStatisticMapper">
+
+	<select id="getProjects" resultType="com.powerlong.yy.toolkit.entity.Project">
+		select bp.id as projectId, bp.name as projectName, r.region_name as regionName
+		from basic_project bp, sys_region r
+		where bp.open_status = 1 and r.region_iid = bp.region_id
+	</select>
+
+	<select id="getProjectsByProjectId" resultType="com.powerlong.yy.toolkit.entity.Project">
+		select bp.id as projectId, bp.name as projectName, r.region_name as regionName
+		from basic_project bp, sys_region r
+		where bp.open_status = 1 and r.region_iid = bp.region_id
+		<if test="projectId != null" >
+		    and bp.id = #{projectId}
+		</if>
+	</select>
+
+	<select id="selectMainCardTotal" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME AS 'projectName',
+			count( mp.project_id ) AS value
+		FROM
+			member_profile mp
+		LEFT JOIN basic_project bp ON bp.id = mp.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			mp.register_time <![CDATA[ <= ]]> #{endTime}
+		GROUP BY
+			mp.project_id
+	</select>
+
+	<select id="selectMemberTotal" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			(sm.total_master_num + sm.total_consume_num ) AS value
+		FROM
+			statistics_member sm
+			LEFT JOIN basic_project bp ON bp.id = sm.project_id
+			LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			sm.MONTH = #{month}
+		GROUP BY
+			sm.project_id
+	</select>
+
+	<select id="selectGoldCardTotal" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sml.level_three_num AS value
+		FROM
+			statistics_member_level sml
+			LEFT JOIN basic_project bp ON bp.id = sml.project_id
+			LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			sml.date = #{endDate}
+			AND sr.region_name IS NOT NULL
+	</select>
+
+	<select id="selectSilverCardTotal" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sml.level_two_num AS value
+		FROM
+			statistics_member_level sml
+			LEFT JOIN basic_project bp ON bp.id = sml.project_id
+			LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			sml.date = #{endDate}
+			AND sr.region_name IS NOT NULL
+	</select>
+
+	<select id="selectLongCardTotal" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sml.level_one_num AS value
+		FROM
+			statistics_member_level sml
+			LEFT JOIN basic_project bp ON bp.id = sml.project_id
+			LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			sml.date = #{endDate}
+			AND sr.region_name IS NOT NULL
+	</select>
+
+	<select id="selectPointsByCategory" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.PointCategoryEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			(spo.zero_master_num + spo.zero_consume_num) as 'belowZero',
+			(spo.one_master_num + spo.one_consume_num) as 'end99',
+			(spo.one_hundred_master_num + spo.one_hundred_consume_num) as 'end199',
+			(spo.two_hundred_master_num + spo.two_hundred_consume_num) as 'end299',
+			(spo.three_hundred_master_num + spo.three_hundred_consume_num) as 'end399',
+			(spo.four_hundred_master_num + spo.four_hundred_consume_num) as 'end499',
+			(spo.five_hundred_master_num + spo.five_hundred_consume_num) as 'end999',
+			(spo.one_thousand_master_num + spo.one_thousand_consume_num) as 'end4999',
+			(spo.five_thousand_master_num + spo.five_thousand_consume_num) as 'up5000'
+		FROM
+		statistics_points_own spo
+		LEFT JOIN basic_project bp ON bp.id = spo.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+				date = #{endDate}
+		GROUP BY
+			spo.project_id
+	</select>
+
+	<select id="selectNewRegister" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			count( mp.project_id ) AS value
+		FROM
+			member_profile mp
+		LEFT JOIN basic_project bp ON bp.id = mp.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			mp.register_time <![CDATA[ >= ]]> #{startTime}
+			AND mp.register_time <![CDATA[ <= ]]> #{endTime}
+		GROUP BY
+			mp.project_id
+	</select>
+
+	<select id="selectConsumeMembers" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			COUNT( ml.project_id ) as value
+		FROM
+			member_profile mp
+		LEFT JOIN member_level ml ON ml.uid = mp.id
+		LEFT JOIN basic_project bp ON bp.id = ml.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		ml.uid IN (
+			SELECT
+				A.uid
+			FROM
+			(
+				SELECT
+				ob.uid,
+				ob.project_id
+				FROM
+				order_base ob
+				WHERE
+				ob.pay_time <![CDATA[ >= ]]> #{startTime}
+				AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+				GROUP BY
+				ob.uid,
+				ob.project_id
+			) A
+			WHERE
+				A.project_id = ml.project_id
+		)
+		GROUP BY
+			ml.project_id
+	</select>
+
+	<select id="selectPointsChange" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			COUNT(ml.project_id) as value
+		FROM
+			member_profile mp
+		LEFT JOIN member_level ml ON ml.uid = mp.id
+		LEFT JOIN basic_level bl ON ml. LEVEL = bl. LEVEL AND ml.project_id = bl.project_id
+		LEFT JOIN member_points mpo ON ml.uid = mpo.uid AND ml.project_id = mpo.project_id
+		LEFT JOIN basic_project bp ON bp.id = ml.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			mp.mobile IS NOT NULL
+			AND (
+				ml.project_id = mp.project_id
+				OR mpo.first_change_time is not null
+				OR mpo.total_points > 0
+			)
+			and ml.uid in (
+				select
+					mpl.uid
+				from
+					member_points_log mpl
+				where mpl.project_id = ml.project_id
+					and mpl.create_time <![CDATA[ >= ]]> #{startTime}
+					and mpl.create_time <![CDATA[ <= ]]> #{endTime}
+					AND mpl.points_type not in (2,4,23,27,28,29,30,31)
+			)
+		GROUP BY
+			ml.project_id
+	</select>
+
+	<select id="selectComsumeAmount" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sum( ob.pay_price )/100 AS value
+		FROM
+			order_base ob
+		LEFT JOIN basic_project bp ON bp.id = ob.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+		GROUP BY
+			ob.project_id
+	</select>
+
+	<select id="selectConsumeNum" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			COUNT(ob.project_id) AS value
+		FROM
+			order_base ob
+		LEFT JOIN basic_project bp ON bp.id = ob.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+		GROUP BY
+			ob.project_id
+	</select>
+
+	<select id="selectWxpayMerchantNum" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sm.wx_merchant_num AS value
+		FROM
+			statistics_merchant sm
+			LEFT JOIN basic_project bp ON bp.id = sm.project_id
+			LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			sm.date = #{endDate}
+		GROUP BY
+			sm.project_id
+	</select>
+
+	<select id="selectAlipayMerchantNum" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sm.ali_merchant_num AS value
+		FROM
+			statistics_merchant sm
+			LEFT JOIN basic_project bp ON bp.id = sm.project_id
+			LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			sm.date =  #{endDate}
+		GROUP BY
+			sm.project_id
+	</select>
+
+	<select id="selectMerchantTotal" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sm.merchant_num as value
+		FROM
+			statistics_merchant sm
+			LEFT JOIN basic_project bp ON bp.id = sm.project_id
+			LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			sm.date = #{endDate}
+		GROUP BY
+			sm.project_id
+	</select>
+
+	<select id="selectPointsTotal" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sb.poins_num as value
+		FROM
+			statistics_basic sb
+			LEFT JOIN basic_project bp ON bp.id = sb.project_id
+			LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			sb.date = #{endDate}
+		GROUP BY
+			sb.project_id
+	</select>
+
+	<select id="selectNewPointsTotal" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sum( mpl.points ) AS value
+		FROM
+			member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			mpl.create_time <![CDATA[ >= ]]> #{startTime}
+			AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+			AND mpl.type = 1
+		GROUP BY
+			mpl.project_id
+	</select>
+
+	<select id="selectNewPointsRegister" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.type = 1
+		AND mpl.merchant_id = 'SYS_002'
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectNewPointsCosume" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sum( mpl.points ) AS value
+		FROM
+			member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			mpl.create_time <![CDATA[ >= ]]> #{startTime}
+			AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+			AND mpl.type = 1
+			AND mpl.points_type IN ( 1, 6, 13, 18, 10, 11, 25 )
+		GROUP BY
+			mpl.project_id
+	</select>
+
+	<select id="selectNewPointsActivity" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			sum( mpl.points ) AS value
+		FROM
+			member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			mpl.create_time <![CDATA[ >= ]]> #{startTime}
+			AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+			AND mpl.type = 1
+			AND (mpl.points_type IN ( 15, 17, 22, 23) or mpl.expire_time is not null)
+		GROUP BY
+			mpl.project_id
+	</select>
+
+	<select id="selectNewPointsPhoto" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.type = 1
+		AND mpl.points_type = 10
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectNewPointsWxPay" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.type = 1
+		AND mpl.points_type = 13
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectNewPointsAliPay" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.type = 1
+		AND mpl.points_type = 18
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectNewPointsBulu" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.type = 1
+		AND mpl.points_type = 6
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectPointsCostTotal" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.type = 2
+		AND mpl.points_type in (1,3,5,32,33,34)
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectPointsCostPark" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.points_type = 3
+		AND mpl.type = 2
+		AND mpl.merchant_id = 'sys_007'
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectPointsCostParkTicket" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.points_type = 3
+		AND mpl.type = 2
+		AND mpl.order_name = '悠悠商场积分兑换停车券'
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectPointsCostGiftCoupon" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND ((mpl.points_type = 1 and mpl.ref_id is not null and left(mpl.ref_id, 1) = 'J') or (mpl.points_type = 3 and mpl.merchant_name = '悠悠商场'))
+		AND mpl.type = 2
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectPointsCostVoucher" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.type = 2
+		AND mpl.merchant_name = '领取优惠券花费积分'
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectPointsCostLimitBuy" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.type = 2
+		AND mpl.merchant_name = '领取限时抢购劵花费积分'
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectPointsCostShare" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+		sr.region_name as 'regionName',
+		bp.NAME as 'projectName',
+		sum( mpl.points ) AS value
+		FROM
+		member_points_log mpl
+		LEFT JOIN basic_project bp ON bp.id = mpl.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+		mpl.create_time <![CDATA[ >= ]]> #{startTime}
+		AND mpl.create_time <![CDATA[ <= ]]> #{endTime}
+		AND mpl.points_type = 34
+		AND mpl.type = 2
+		GROUP BY
+		mpl.project_id
+	</select>
+
+	<select id="selectFreeParkTimes" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name  as 'regionName',
+			bp.NAME as 'projectName',
+			count( ph.projectId ) AS value
+		FROM
+			parkingHistory ph
+			LEFT JOIN basic_project bp ON bp.id = ph.projectId
+			LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			ph.project_free_parking = 1
+				AND ph.create_time <![CDATA[ >= ]]> #{startTime}
+				AND ph.create_time <![CDATA[ <= ]]> #{endTime}
+		GROUP BY
+			ph.projectId
+	</select>
+
+	<select id="selectOrderPic" parameterType="java.util.Map" resultType="java.util.Map">
+		select oba.pic_url as url, bm.name as merchantName, bp.name as projectName, oba.pay_time as payTime
+		from order_base_audit oba
+		left join basic_merchant bm on oba.merchant_id = bm.id
+		left join basic_project bp on oba.project_id = bp.id
+		where oba.project_id = #{projectId}
+		and oba.pay_time <![CDATA[ >= ]]> #{startTime}
+		and oba.pay_time <![CDATA[ <= ]]> #{endTime} and oba.pic_url is not null
+ 		limit #{offset}, #{pageSize}
+	</select>
+
+	<select id="selectOrderPicByMerchantId" parameterType="java.util.Map" resultType="java.util.Map">
+		select oba.pic_url as url, bm.name as merchantName, bp.name as projectName, oba.pay_time as payTime
+		from order_base_audit oba
+		left join basic_merchant bm on oba.merchant_id = bm.id
+		left join basic_project bp on oba.project_id = bp.id
+		where oba.project_id = #{projectId}
+		and oba.pay_time <![CDATA[ >= ]]> #{startTime}
+		and oba.pay_time <![CDATA[ <= ]]> #{endTime} and oba.pic_url is not null
+		<if test="merchantId != null" >
+			and oba.merchant_id = #{merchantId}
+		</if>
+		limit #{offset}, #{pageSize}
+	</select>
+
+	<select id="countOrderPic" resultType="java.lang.Integer" parameterType="java.util.Map" >
+		select count(*)
+		from order_base_audit oba
+		left join basic_merchant bm on oba.merchant_id = bm.id
+		left join basic_project bp on oba.project_id = bp.id
+		where oba.project_id = #{projectId}
+			and oba.pay_time <![CDATA[ >= ]]> #{startTime}
+			and oba.pay_time <![CDATA[ <= ]]> #{endTime} and oba.pic_url is not null
+	</select>
+
+	<select id="countOrderPicByMerchantId" resultType="java.lang.Integer" parameterType="java.util.Map" >
+		select count(*)
+		from order_base_audit oba
+		left join basic_merchant bm on oba.merchant_id = bm.id
+		left join basic_project bp on oba.project_id = bp.id
+		where oba.project_id = #{projectId}
+			and oba.pay_time <![CDATA[ >= ]]> #{startTime}
+			and oba.pay_time <![CDATA[ <= ]]> #{endTime} and oba.pic_url is not null
+		<if test="merchantId != null" >
+			and oba.merchant_id = #{merchantId}
+		</if>
+	</select>
+
+	<select id="getMemberConsumeAmount" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.name as 'projectName',
+			ROUND( SUM( ob.pay_price ) / 100, 2 )  AS value
+		FROM
+			order_base ob
+		LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+		LEFT JOIN basic_project bp ON bp.id = ml.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]>  #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ml.LEVEL = #{memberLevel}
+		group by
+			ml.project_id
+	</select>
+
+
+	<select id="getConsumeMemberNum" parameterType="java.util.Map" resultType="com.powerlong.yy.toolkit.entity.CommonEntity">
+		SELECT
+			sr.region_name as 'regionName',
+			bp.NAME as 'projectName',
+			count( ml.project_id ) AS value
+		FROM
+			member_profile mp
+		LEFT JOIN member_level ml ON ml.uid = mp.id
+		LEFT JOIN member_points mpo ON ml.uid = mpo.uid
+			AND ml.project_id = mpo.project_id
+		LEFT JOIN basic_project bp ON bp.id = ml.project_id
+		LEFT JOIN sys_region sr ON sr.region_iid = bp.region_id
+		WHERE
+			ml.LEVEL = #{memberLevel}
+			AND ml.uid IN (
+				SELECT
+					A.uid
+				FROM
+				(
+					SELECT
+						ob.uid,
+						ob.project_id
+					FROM
+					order_base ob
+					LEFT JOIN member_level ml ON ml.uid = ob.uid
+						AND ml.project_id = ob.project_id
+					WHERE
+						ob.pay_time <![CDATA[ >= ]]>  #{startTime}
+						AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+					GROUP BY
+						ob.uid,
+						ob.project_id
+				) A
+				WHERE
+					A.project_id = ml.project_id
+				)
+		GROUP BY
+			ml.project_id
+	</select>
+
+</mapper>

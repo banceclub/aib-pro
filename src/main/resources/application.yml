@@ -1,0 +1,40 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /yy-toolkit
+
+spring:
+  profiles:
+    active: uat
+#  mvc:
+#    async:
+#      request-timeout: 5000
+
+  datasource:
+    druid:
+      initial-size: 10
+      min-idle: 10
+      max-active: 500
+      max-wait: 10000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: select 1 from dual
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 20
+      filter: stat,wall
+      aop-patterns: com.tech.wing.bl.controller.*
+      connection-init-sqls:
+        SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci
+      stat-view-servlet:
+        login-username: admin
+        login-password: '!QAZsw23'
+
+mybatis:
+  type-aliases-package: com.powerlong.yy.toolkit.do
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    call-setters-on-nulls: true
+

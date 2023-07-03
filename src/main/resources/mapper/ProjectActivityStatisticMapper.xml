@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.powerlong.yy.toolkit.dao.ProjectActivityStatisticMapper">
+<!--	累计数-会员累积数（主卡）-->
+	<select id="selectMainCardTotal" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			count( mp.project_id ) AS num
+		FROM
+			member_profile mp
+		WHERE
+			mp.register_time <![CDATA[ <= ]]> #{endTime} 
+			AND mp.project_id = #{projectId}
+	</select>
+
+<!--	累计数-会员累计数-->
+	<select id="selectMemberTotal" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			(sm.total_master_num + sm.total_consume_num ) AS num
+		FROM
+			statistics_member sm
+		WHERE
+			sm.MONTH = #{month}
+		AND sm.project_id = #{projectId}
+	</select>
+
+<!--	累计数-金龙卡累积数-->
+	<select id="selectGoldCardTotal" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			sml.level_three_num AS num
+		FROM
+			statistics_member_level sml
+		WHERE
+			sml.date = #{endDate}
+			AND sml.project_id = #{projectId}
+	</select>
+
+<!--	累计数-银龙卡累积数-->
+	<select id="selectSilverCardTotal" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			sml.level_two_num AS num
+		FROM
+			statistics_member_level sml
+		WHERE
+			sml.date = #{endDate}
+			AND sml.project_id = #{projectId}
+	</select>
+
+
+<!--	累计数-龙卡累积会员数-->
+	<select id="selectLongCardTotal" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			sml.level_one_num AS num
+		FROM
+			statistics_member_level sml
+		WHERE
+			sml.date = #{endDate}
+			AND sml.project_id = #{projectId}
+	</select>
+
+
+<!--	消费金额-会员消费金额-->
+	<select id="selectComsumeAmountTotal" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			ROUND( SUM( ob.pay_price ) / 100, 2 ) AS num
+		FROM
+			order_base ob
+			LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ml.project_id = #{projectId}
+	</select>
+
+<!--	消费金额-金卡消费金额-->
+	<select id="selectComsumeAmountGold" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			ROUND( SUM( ob.pay_price ) / 100, 2 ) AS num
+		FROM
+			order_base ob
+			LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ml.LEVEL = 3
+			AND ml.project_id = #{projectId}
+	</select>
+
+<!--	消费金额-银卡消费金额-->
+	<select id="selectComsumeAmountSilver" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			ROUND( SUM( ob.pay_price ) / 100, 2 ) AS num
+		FROM
+			order_base ob
+			LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ml.LEVEL = 2
+			AND ml.project_id = #{projectId}
+	</select>
+
+<!--	消费金额-龙卡消费金额-->
+	<select id="selectComsumeAmountLong" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			ROUND( SUM( ob.pay_price ) / 100, 2 ) AS num
+		FROM
+			order_base ob
+			LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ml.LEVEL = 1
+			AND ml.project_id = #{projectId}
+	</select>
+
+<!--	交易笔数-会员交易笔数-->
+	<select id="selectCosumeNum" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			COUNT(ob.project_id) AS num
+		FROM
+			order_base ob
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ob.project_id = #{projectId}
+	</select>
+
+<!--	交易笔数-金龙卡交易笔数-->
+	<select id="selectCosumeNumGold" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+				COUNT(ob.project_id) AS num
+		FROM
+			order_base ob
+			LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ml.LEVEL = 3
+			AND ml.project_id = #{projectId}
+	</select>
+
+<!--	交易笔数-银龙卡交易笔数-->
+	<select id="selectCosumeNumSilver" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+				COUNT(ob.project_id) AS num
+		FROM
+			order_base ob
+			LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ml.LEVEL = 2
+			AND ml.project_id = #{projectId}
+	</select>
+
+<!--	交易笔数-龙卡交易笔数-->
+	<select id="selectCosumeNumLong" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+			COUNT(ob.project_id) AS num
+		FROM
+			order_base ob
+			LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+		WHERE
+			ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ml.LEVEL = 1
+			AND ml.project_id = #{projectId}
+	</select>
+
+
+<!--	消费会员数-消费会员数-->
+	<select id="selectCosumeMemberNum" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT 
+			count( 0 ) as num
+		FROM (
+			SELECT
+				ob.uid
+			FROM order_base ob
+			WHERE ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ob.project_id = #{projectId}
+			GROUP BY
+				ob.uid
+		) A
+	</select>
+
+<!--	消费会员数-金龙卡消费会员数-->
+	<select id="selectCosumeMemberNumGold" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT 
+			count( 0 ) as num
+		FROM (
+			SELECT
+				ob.uid
+			FROM 
+				order_base ob
+			LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+			WHERE ob.pay_time <![CDATA[ >= ]]> #{startTime}
+				AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+				AND ob.project_id = #{projectId}
+				AND ml.level = 3
+			GROUP BY
+				ob.uid
+		) A
+	</select>
+
+<!--	消费会员数-银龙卡消费会员数-->
+	<select id="selectCosumeMemberNumSilver" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT count( 0 ) as num FROM (
+			SELECT
+				ob.uid
+			FROM order_base ob
+			LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+			WHERE ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ob.project_id = #{projectId}
+			AND ml.level = 2
+			GROUP BY
+				ob.uid
+			) A
+	</select>
+
+<!--	消费会员数-龙卡消费会员数-->
+	<select id="selectCosumeMemberNumLong" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT count( 0 ) as num 
+		FROM (
+			SELECT
+				ob.uid
+			FROM order_base ob
+			LEFT JOIN member_level ml ON ml.uid = ob.uid AND ml.project_id = ob.project_id
+			WHERE ob.pay_time <![CDATA[ >= ]]> #{startTime}
+			AND ob.pay_time <![CDATA[ <= ]]> #{endTime}
+			AND ob.project_id = #{projectId}
+			AND ml.level = 1
+			GROUP BY
+				ob.uid
+			) A
+	</select>
+
+<!--	领券的人销售金额-分卡级-->
+	<select id="selectConsumeAmountByLevel" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		 sum(ob.pay_price) / 100 as num, 
+		 bl.level_name level
+		FROM
+		 order_base ob,
+		 (
+		  SELECT DISTINCT
+		   ptr.uid,
+		   min(ptr.create_date) AS takeTime
+		  FROM
+		   product_ticket_record ptr
+		  LEFT JOIN product_ticket pt ON pt.id = ptr.ticker_id
+		  WHERE
+		   pt.project_id = #{projectId}
+		  AND ptr.create_date <![CDATA[ >= ]]> #{startTime}
+		  AND ptr.create_date <![CDATA[ <= ]]> #{endTime}
+		group by ptr.uid
+		  UNION
+		   SELECT DISTINCT
+			mc.uid,
+			min(mc.create_time) AS takeTime
+		   FROM
+			member_coupon mc
+		   WHERE
+			mc.project_id = #{projectId}
+		   AND mc.create_time <![CDATA[ >= ]]> #{startTime}
+		   AND mc.create_time <![CDATA[ <= ]]> #{endTime}
+		group by mc.uid
+		 ) ptr1
+		LEFT JOIN member_level ml ON ml.uid = ptr1.uid
+		LEFT JOIN basic_level bl ON bl. LEVEL = ml. LEVEL
+		WHERE
+		 bl.project_id = #{projectId}
+		AND ml.project_id = #{projectId}
+		AND (
+		 DATE_FORMAT(ob.pay_time, '%Y%m%d') <![CDATA[ >= ]]> DATE_FORMAT(ptr1.takeTime, '%Y%m%d')
+		 OR DATE_FORMAT(ob.pay_time, '%Y%m%d') <![CDATA[ >= ]]> DATE_FORMAT(ptr1.takeTime, '%Y%m%d')
+		)
+		AND ob.uid = ptr1.uid
+		GROUP BY
+		 ml. LEVEL
+	</select>
+
+<!--	核销券的人销售金额-分卡级-->
+	<select id="selectValidConsumeAmountByLevel" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		 sum(ob.pay_price) / 100 as num, 
+		 bl.level_name level
+		FROM
+		 order_base ob,
+		 (
+		  SELECT DISTINCT
+		   ptr.uid,
+		   min(ptr.used_time) AS takeTime
+		  FROM
+		   product_ticket_record ptr
+		  LEFT JOIN product_ticket pt ON pt.id = ptr.ticker_id
+		  WHERE
+		   pt.project_id = #{projectId}
+		  AND ptr.used_time <![CDATA[ >= ]]> #{startTime}
+		  AND ptr.used_time <![CDATA[ <= ]]> #{endTime}
+		  AND ptr. STATUS = 1
+		  GROUP BY
+		   ptr.uid
+		  UNION
+		   SELECT DISTINCT
+			mc.uid,
+			min(mc.used_time) AS takeTime
+		   FROM
+			member_coupon mc
+		   WHERE
+			mc.project_id = #{projectId}
+		   AND mc.used_time <![CDATA[ >= ]]> #{startTime}
+		   AND mc.used_time <![CDATA[ <= ]]> #{endTime}
+		   AND mc.`status` = 1
+		   GROUP BY
+			mc.uid
+		 ) ptr1
+		LEFT JOIN member_level ml ON ml.uid = ptr1.uid
+		LEFT JOIN basic_level bl ON bl. LEVEL = ml. LEVEL
+		WHERE
+		 bl.project_id = #{projectId}
+		AND ml.project_id = #{projectId}
+		AND (
+		 DATE_FORMAT(ob.pay_time, '%Y%m%d') = DATE_FORMAT(ptr1.takeTime, '%Y%m%d')
+		 OR DATE_FORMAT(ob.pay_time, '%Y%m%d') = DATE_FORMAT(ptr1.takeTime, '%Y%m%d')
+		)
+		AND ob.uid = ptr1.uid
+		GROUP BY
+		 ml. LEVEL
+	</select>
+
+<!--	领券的人销售金额-分业态-->
+	<select id="selectConsumeAmountByCategory" parameterType="java.util.Map" resultType="java.util.Map">
+		select sum(a.pay_price)/ 100 as num,
+		b.name categoryname 
+		from (SELECT
+		 c.uid,		 
+		 c.pay_price,
+		 d.category_id,
+		 e.NAME ,
+		 e.parent_id
+		FROM
+		 order_base c,
+		 basic_merchant d,
+		 basic_category e ,
+		 ( SELECT DISTINCT
+		  a.uid
+		 FROM
+		  member_coupon a
+		 WHERE
+		  1=1
+		  AND a.project_id = #{projectId} 
+		  and a.create_time<![CDATA[ >= ]]>#{startTime} and a.create_time <![CDATA[ <= ]]> #{endTime} 
+		 union
+		 SELECT DISTINCT
+		  a.uid  
+		 FROM
+		  product_ticket_record a left join
+		 basic_merchant b on a.merchant_id=b.id
+		 WHERE
+		  1=1
+		  AND b.project_id = #{projectId} 
+		  and a.create_date<![CDATA[ >= ]]>#{startTime} and a.create_date <![CDATA[ <= ]]> #{endTime}
+		 ) e
+		WHERE
+		 c.uid =e.uid   
+		 AND c.merchant_id = d.id 
+		 AND e.id = d.category_id 
+		 and c.project_id=#{projectId} 
+		 and c.create_time<![CDATA[ >= ]]>#{startTime} and c.create_time <![CDATA[ <= ]]> #{endTime} 
+		GROUP BY
+		 c.uid,
+		 d.category_id ) a, basic_category b where a.parent_id=b.id GROUP BY a.parent_id
+	</select>
+
+
+<!--	核销券的人销售金额-分业态-->
+	<select id="selectValidConsumeAmountByCategory" parameterType="java.util.Map" resultType="java.util.Map">       
+		SELECT
+		 sum( a.pay_price )/ 100 as num,
+		 b.NAME as categoryname 
+		FROM
+		 (
+		 SELECT
+		  c.uid,
+		  c.pay_price,
+		  d.category_id,
+		  e.NAME,
+		  e.parent_id 
+		 FROM
+		  order_base c,
+		  basic_merchant d,
+		  basic_category e,
+		  (
+		  SELECT DISTINCT
+		   a.uid 
+		  FROM
+		   member_coupon a 
+		  WHERE
+		   a.STATUS = 1 
+		   AND a.project_id = #{projectId} 
+		   AND a.used_time <![CDATA[ >= ]]> #{startTime} 
+		   AND a.used_time <![CDATA[ <= ]]> #{endTime} UNION
+		  SELECT DISTINCT
+		   a.uid 
+		  FROM
+		   product_ticket_record a
+		   LEFT JOIN basic_merchant b ON a.merchant_id = b.id 
+		  WHERE
+		   a.STATUS = 1 
+		   AND b.project_id = #{projectId} 
+		   AND a.used_time <![CDATA[ >= ]]> #{startTime} 
+		   AND a.used_time <![CDATA[ <= ]]> #{endTime} 
+		  ) e 
+		 WHERE
+		  c.uid = e.uid 
+		  AND c.merchant_id = d.id 
+		  AND e.id = d.category_id 
+		  AND c.project_id = #{projectId} 
+		  AND c.create_time <![CDATA[ >= ]]> #{startTime} 
+		  AND c.create_time <![CDATA[ <= ]]> #{endTime} 
+		 GROUP BY
+		  c.uid,
+		  d.category_id 
+		 ) a,
+		 basic_category b 
+		WHERE
+		 a.parent_id = b.id 
+		GROUP BY
+		 a.parent_id
+	</select>
+
+<!--	领券的人数（去重）-->
+	<select id="selectDistinctTickerMember" parameterType="java.util.Map" resultType="java.util.Map">      
+		SELECT
+		 NAME AS categoryname,
+		 (
+		  SELECT
+		   count(DISTINCT uid)
+		  FROM
+		   order_base
+		  WHERE
+		   create_time <![CDATA[ >= ]]> #{startTime}
+		  AND create_time <![CDATA[ <= ]]> #{endTime}
+		  AND merchant_id IN (
+		   SELECT
+			id
+		   FROM
+			basic_merchant
+		   WHERE
+			category_id IN (
+			 SELECT
+			  id
+			 FROM
+			  basic_category
+			 WHERE
+			  parent_id = bc.id
+			)
+		  )
+		  AND uid IN (
+		   SELECT DISTINCT
+			uid
+		   FROM
+			product_ticket_record
+		   WHERE
+			ticker_id IN (
+			 SELECT
+			  id
+			 FROM
+			  product_ticket
+			 WHERE
+			  project_id = #{projectId}
+			)
+		   AND create_date <![CDATA[ >= ]]> #{startTime}
+		   AND create_date <![CDATA[ <= ]]> #{endTime}
+		  )
+		 ) AS num
+		FROM
+		 basic_category bc
+		WHERE
+		 parent_id = 0
+		AND type = 1
+	</select>
+
+
+<!--	核销券的人数（去重）-->
+	<select id="selectDistinctTickerMemberValid" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		 NAME as categoryname,
+		 (
+		  SELECT
+		   count(DISTINCT uid)
+		  FROM
+		   order_base
+		  WHERE
+		   create_time <![CDATA[ >= ]]> #{startTime}
+		  AND create_time <![CDATA[ <= ]]> #{endTime}
+		  AND merchant_id IN (
+		   SELECT
+			id
+		   FROM
+			basic_merchant
+		   WHERE
+			category_id IN (
+			 SELECT
+			  id
+			 FROM
+			  basic_category
+			 WHERE
+			  parent_id = bc.id
+			)
+		  )
+		  AND uid IN (
+		   SELECT DISTINCT
+			uid
+		   FROM
+			product_ticket_record
+		   WHERE
+			STATUS = 1
+		   AND ticker_id IN (
+			SELECT
+			 id
+			FROM
+			 product_ticket
+			WHERE
+			 project_id = #{projectId}
+		   )
+		   AND used_time <![CDATA[ >= ]]> #{startTime}
+		   AND used_time <![CDATA[ <= ]]> #{endTime}
+		   UNION ALL
+			SELECT DISTINCT
+			 uid
+			FROM
+			 member_coupon
+			WHERE
+			 project_id = #{projectId}
+			AND STATUS = 1
+			AND used_time <![CDATA[ >= ]]> #{startTime}
+			AND used_time <![CDATA[ <= ]]> #{endTime}
+		  )
+		 ) AS num
+		FROM
+		 basic_category bc
+		WHERE
+		 parent_id = 0
+		AND type = 1
+	</select>
+
+
+
+<!--	领券总人数（去重）-->
+	<select id="selectTickerMemberNum" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+		 (
+		  (
+		   SELECT
+			count(DISTINCT uid)
+		   FROM
+			product_ticket_record
+		   WHERE
+			ticker_id IN (
+			 SELECT
+			  id
+			 FROM
+			  product_ticket
+			 WHERE
+			  project_id = #{projectId}
+			)
+		   AND create_date <![CDATA[ >= ]]> #{startTime}
+		   AND create_date <![CDATA[ <= ]]> #{endTime}
+		  ) + (
+		   SELECT
+			count(DISTINCT uid)
+		   FROM
+			member_coupon
+		   WHERE
+			project_id = #{projectId}
+		   AND create_time <![CDATA[ >= ]]> #{startTime}
+		   AND create_time <![CDATA[ <= ]]> #{endTime}
+		  )
+		 ) AS num
+		FROM
+		 DUAL
+	</select>
+
+<!--	核销总人数（去重）-->
+	<select id="selectValidTickerMemberNum" parameterType="java.util.Map" resultType="java.lang.String">
+		SELECT
+		 (
+		  (
+		   SELECT
+			count(DISTINCT uid)
+		   FROM
+			product_ticket_record
+		   WHERE
+		  status =1
+			AND
+			ticker_id IN (
+			 SELECT
+			  id
+			 FROM
+			  product_ticket
+			 WHERE
+			  project_id = #{projectId}
+			)
+		   AND used_time <![CDATA[ >= ]]> #{startTime}
+		   AND used_time <![CDATA[ <= ]]> #{endTime}
+		  ) + (
+		   SELECT
+			count(DISTINCT uid)
+		   FROM
+			member_coupon
+		   WHERE
+			project_id = #{projectId}
+		   AND status =1
+		   AND used_time <![CDATA[ >= ]]> #{startTime}
+		   AND used_time <![CDATA[ <= ]]> #{endTime}
+		  )
+		 ) AS num
+		FROM
+		 DUAL
+	</select>
+
+<!--	活动券领券数量-->
+	<select id="selectTicketPickNum" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		 pt.id AS '卡劵Id',
+		 pt.ticket_name AS '卡劵名称',
+		 (
+		  SELECT
+		   sum(buy_num)
+		  FROM
+		   product_ticket_record
+		  WHERE
+		   ticker_id = pt.id
+		  AND create_date <![CDATA[ >= ]]> #{startTime}
+		  AND create_date <![CDATA[ <= ]]> #{endTime}
+		 ) AS '领取数量'
+		FROM
+		 product_ticket pt
+		WHERE
+		 pt.project_id = #{projectId}
+		UNION ALL
+		 SELECT
+		  cp.id AS '卡劵Id',
+		  cp. NAME AS '卡劵名称',
+		  (
+		   SELECT
+			count(1)
+		   FROM
+			member_coupon
+		   WHERE
+			coupon_id = cp.id
+		   AND return_status = 0
+			 AND create_time <![CDATA[ >= ]]> #{startTime}
+			AND create_time <![CDATA[ <= ]]> #{endTime}
+		  ) AS '领取数量'
+		 FROM
+		  coupon_profile cp
+		 WHERE
+		  cp.project_id = #{projectId}
+	</select>
+
+<!--	活动券核销数量-->
+	<select id="selectTicketValidNum" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		 pt.id AS '卡劵Id',
+		 pt.ticket_name AS '卡劵名称',
+		 (
+		  SELECT
+		   count(1)
+		  FROM
+		   ticket_uselog
+		  WHERE
+		   coupon_id = pt.id
+			AND create_time <![CDATA[ >= ]]> #{startTime}
+		   AND create_time <![CDATA[ <= ]]> #{endTime}
+		 ) AS '核销数量'
+		FROM
+		 product_ticket pt
+		WHERE
+		 pt.project_id = #{projectId}
+		UNION ALL
+		 SELECT
+		  cp.id AS '卡劵Id',
+		  cp. NAME AS '卡劵名称',
+		  (
+		   SELECT
+			count(1)
+		   FROM
+			coupon_uselog
+		   WHERE
+			coupon_id = cp.id
+			  AND create_time <![CDATA[ >= ]]> #{startTime}
+			AND create_time <![CDATA[ <= ]]> #{endTime}
+		  ) AS '核销数量'
+		 FROM
+		  coupon_profile cp
+		 WHERE
+		  cp.project_id = #{projectId}
+	</select>
+
+</mapper>
